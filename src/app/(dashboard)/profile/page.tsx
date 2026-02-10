@@ -64,21 +64,40 @@ export default function ProfilePage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const whiskeysWithUser = sampleWhiskeys.map((w) => ({
-        ...w,
+      // Delete existing data first to avoid duplicates
+      await supabase.from("whiskeys").delete().eq("user_id", user.id);
+
+      const insertData = sampleWhiskeys.map((w) => ({
         user_id: user.id,
+        name: w.name,
+        type: w.type,
+        distillery: w.distillery,
+        country: w.country,
+        region: w.region,
+        age_statement: w.age_statement,
+        abv: w.abv,
+        store: w.store,
+        purchase_price: w.purchase_price,
+        purchase_date: w.purchase_date,
+        number_of_bottles: w.number_of_bottles,
+        bottles_opened: w.bottles_opened,
+        current_bottle_fill_percentage: w.current_bottle_fill_percentage,
+        current_quantity_ml: w.current_quantity_ml,
+        bottle_size_ml: w.bottle_size_ml,
+        tasting_notes: w.tasting_notes,
+        rating: w.rating,
         image_url: null,
       }));
+
+      const { error: wError } = await supabase
+        .from("whiskeys")
+        .insert(insertData);
+      if (wError) throw wError;
 
       const wishlistWithUser = sampleWishlist.map((w) => ({
         ...w,
         user_id: user.id,
       }));
-
-      const { error: wError } = await supabase
-        .from("whiskeys")
-        .insert(whiskeysWithUser);
-      if (wError) throw wError;
 
       const { error: wlError } = await supabase
         .from("wishlist")

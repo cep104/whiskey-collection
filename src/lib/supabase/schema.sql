@@ -10,11 +10,19 @@ create table if not exists public.whiskeys (
   user_id uuid references auth.users(id) on delete cascade not null,
   name text not null,
   type text not null check (type in ('Bourbon', 'Scotch', 'Rye', 'Irish', 'Japanese', 'Single Malt', 'Blended')),
+  distillery text,
+  country text,
+  region text,
+  age_statement integer,
   store text,
   purchase_price numeric(10, 2),
   purchase_date date,
+  number_of_bottles integer default 1,
+  bottles_opened integer default 0,
+  current_bottle_fill_percentage decimal(5, 2) default 100.00,
   current_quantity_ml integer,
   bottle_size_ml integer not null default 750,
+  abv decimal(4, 2),
   tasting_notes text,
   rating integer check (rating >= 1 and rating <= 5),
   image_url text,
@@ -105,4 +113,7 @@ create policy "Users can delete own whiskey images" on storage.objects
 create index if not exists idx_whiskeys_user_id on public.whiskeys(user_id);
 create index if not exists idx_whiskeys_type on public.whiskeys(type);
 create index if not exists idx_whiskeys_name on public.whiskeys(name);
+create index if not exists idx_whiskeys_distillery on public.whiskeys(distillery);
+create index if not exists idx_whiskeys_country on public.whiskeys(country);
+create index if not exists idx_whiskeys_region on public.whiskeys(region);
 create index if not exists idx_wishlist_user_id on public.wishlist(user_id);

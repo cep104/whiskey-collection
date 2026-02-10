@@ -5,12 +5,17 @@ import Link from "next/link";
 import type { Whiskey, WhiskeyType } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 import { StarRating } from "@/components/ui/star-rating";
+import { MiniBottle } from "@/components/collection/bottle-tracker";
 import {
   Wine,
   DollarSign,
   TrendingUp,
   Star,
   BarChart3,
+  Droplets,
+  Globe,
+  Building2,
+  Clock,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -35,6 +40,11 @@ const TYPE_COLORS: Record<string, string> = {
   Blended: "#fbbf24",
 };
 
+const COUNTRY_COLORS = [
+  "#d97706", "#ea580c", "#f59e0b", "#b45309", "#92400e",
+  "#78350f", "#fbbf24", "#dc2626", "#16a34a", "#2563eb",
+];
+
 interface StatsViewProps {
   whiskeys: Whiskey[];
 }
@@ -51,6 +61,33 @@ export function StatsView({ whiskeys }: StatsViewProps) {
       ratings.length > 0
         ? ratings.reduce((sum, w) => sum + (w.rating || 0), 0) / ratings.length
         : 0;
+
+    // Total ML remaining
+    const totalMlRemaining = whiskeys.reduce(
+      (sum, w) => sum + (w.current_quantity_ml || 0),
+      0
+    );
+
+    // Average age statement
+    const withAge = whiskeys.filter((w) => w.age_statement);
+    const avgAge =
+      withAge.length > 0
+        ? withAge.reduce((sum, w) => sum + (w.age_statement || 0), 0) / withAge.length
+        : 0;
+
+    // Bottle status breakdown
+    const fullBottles = whiskeys.filter(
+      (w) => (w.current_bottle_fill_percentage ?? 100) >= 90
+    ).length;
+    const partialBottles = whiskeys.filter(
+      (w) => {
+        const fill = w.current_bottle_fill_percentage ?? 100;
+        return fill > 10 && fill < 90;
+      }
+    ).length;
+    const nearEmpty = whiskeys.filter(
+      (w) => (w.current_bottle_fill_percentage ?? 100) <= 10
+    ).length;
 
     // Type breakdown
     const typeMap = new Map<WhiskeyType, { count: number; value: number }>();
@@ -69,6 +106,28 @@ export function StatsView({ whiskeys }: StatsViewProps) {
       }))
       .sort((a, b) => b.count - a.count);
 
+    // Country breakdown
+    const countryMap = new Map<string, number>();
+    whiskeys.forEach((w) => {
+      const country = w.country || "Unknown";
+      countryMap.set(country, (countryMap.get(country) || 0) + 1);
+    });
+    const countryBreakdown = Array.from(countryMap.entries())
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count);
+
+    // Top distilleries
+    const distilleryMap = new Map<string, number>();
+    whiskeys.forEach((w) => {
+      if (w.distillery) {
+        distilleryMap.set(w.distillery, (distilleryMap.get(w.distillery) || 0) + 1);
+      }
+    });
+    const topDistilleries = Array.from(distilleryMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+
     // Most expensive
     const mostExpensive = [...whiskeys]
       .filter((w) => w.purchase_price)
@@ -82,7 +141,14 @@ export function StatsView({ whiskeys }: StatsViewProps) {
       totalBottles,
       totalValue,
       avgRating,
+      totalMlRemaining,
+      avgAge,
+      fullBottles,
+      partialBottles,
+      nearEmpty,
       typeBreakdown,
+      countryBreakdown,
+      topDistilleries,
       mostExpensive,
       recentlyAdded,
     };
@@ -116,6 +182,17 @@ export function StatsView({ whiskeys }: StatsViewProps) {
     color: TYPE_COLORS[t.type] || "#d97706",
   }));
 
+  const countryPieData = stats.countryBreakdown.map((c, i) => ({
+    name: c.country,
+    value: c.count,
+    color: COUNTRY_COLORS[i % COUNTRY_COLORS.length],
+  }));
+
+  const distilleryBarData = stats.topDistilleries.map((d) => ({
+    name: d.name,
+    count: d.count,
+  }));
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -135,14 +212,14 @@ export function StatsView({ whiskeys }: StatsViewProps) {
           },
           {
             label: "Avg Rating",
-            value: stats.avgRating.toFixed(1),
+            value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "—",
             icon: Star,
             color: "from-yellow-500/20 to-orange-900/20",
           },
           {
-            label: "Types Collected",
-            value: stats.typeBreakdown.length.toString(),
-            icon: TrendingUp,
+            label: "Total ML Left",
+            value: stats.totalMlRemaining > 0 ? `${(stats.totalMlRemaining / 1000).toFixed(1)}L` : "—",
+            icon: Droplets,
             color: "from-blue-500/20 to-indigo-900/20",
           },
         ].map((card, i) => (
@@ -165,6 +242,77 @@ export function StatsView({ whiskeys }: StatsViewProps) {
           </motion.div>
         ))}
       </div>
+
+      {/* Secondary Stats Row */}
+      <div className="grid grid-cols-3 md:grid-cols-3 gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="glass-card p-4 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-green-900/20 flex items-center justify-center">
+            <MiniBottle fillPercentage={100} />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Full</p>
+            <p className="text-lg font-bold">{stats.fullBottles}</p>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-card p-4 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-yellow-900/20 flex items-center justify-center">
+            <MiniBottle fillPercentage={50} />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Partial</p>
+            <p className="text-lg font-bold">{stats.partialBottles}</p>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="glass-card p-4 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-red-900/20 flex items-center justify-center">
+            <MiniBottle fillPercentage={5} />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Empty</p>
+            <p className="text-lg font-bold">{stats.nearEmpty}</p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Additional info chips */}
+      {(stats.avgAge > 0 || stats.typeBreakdown.length > 0) && (
+        <div className="flex flex-wrap gap-3">
+          {stats.avgAge > 0 && (
+            <div className="glass px-3 py-1.5 rounded-full flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-whiskey-gold" />
+              <span className="text-xs text-muted-foreground">Avg Age:</span>
+              <span className="text-xs font-semibold">{stats.avgAge.toFixed(1)} yrs</span>
+            </div>
+          )}
+          <div className="glass px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-whiskey-gold" />
+            <span className="text-xs text-muted-foreground">Types:</span>
+            <span className="text-xs font-semibold">{stats.typeBreakdown.length}</span>
+          </div>
+          {stats.countryBreakdown.length > 0 && (
+            <div className="glass px-3 py-1.5 rounded-full flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-whiskey-gold" />
+              <span className="text-xs text-muted-foreground">Countries:</span>
+              <span className="text-xs font-semibold">{stats.countryBreakdown.length}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -224,6 +372,64 @@ export function StatsView({ whiskeys }: StatsViewProps) {
           </div>
         </motion.div>
 
+        {/* Country Distribution Pie Chart */}
+        {countryPieData.length > 0 && countryPieData[0].name !== "Unknown" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="glass-card p-6"
+          >
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+              Collection by Country
+            </h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={countryPieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {countryPieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} stroke="transparent" />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: "rgba(13, 9, 6, 0.95)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                    formatter={(value: number, name: string) => [
+                      `${value} bottle${value !== 1 ? "s" : ""}`,
+                      name,
+                    ]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap gap-3 mt-2">
+              {countryPieData.map((item) => (
+                <div key={item.name} className="flex items-center gap-1.5">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: item.color }}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {item.name} ({item.value})
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Value by Type Bar Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -268,6 +474,53 @@ export function StatsView({ whiskeys }: StatsViewProps) {
             </ResponsiveContainer>
           </div>
         </motion.div>
+
+        {/* Top Distilleries Bar Chart */}
+        {distilleryBarData.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="glass-card p-6"
+          >
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+              Top Distilleries
+            </h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={distilleryBarData} layout="vertical">
+                  <XAxis
+                    type="number"
+                    fontSize={11}
+                    stroke="#6b7280"
+                    allowDecimals={false}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={100}
+                    fontSize={11}
+                    stroke="#6b7280"
+                    tick={{ fill: "#9ca3af" }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "rgba(13, 9, 6, 0.95)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                    formatter={(value: number) => [
+                      `${value} bottle${value !== 1 ? "s" : ""}`,
+                      "Bottles",
+                    ]}
+                  />
+                  <Bar dataKey="count" fill="#d97706" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Bottom Row */}
@@ -292,11 +545,15 @@ export function StatsView({ whiskeys }: StatsViewProps) {
                 <span className="text-xs font-mono text-muted-foreground w-5">
                   #{i + 1}
                 </span>
+                <MiniBottle fillPercentage={whiskey.current_bottle_fill_percentage ?? 100} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {whiskey.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">{whiskey.type}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {whiskey.type}
+                    {whiskey.distillery ? ` · ${whiskey.distillery}` : ""}
+                  </p>
                 </div>
                 <span className="text-sm font-semibold text-whiskey-gold">
                   {formatCurrency(whiskey.purchase_price!)}
@@ -328,11 +585,15 @@ export function StatsView({ whiskeys }: StatsViewProps) {
                 href={`/bottle/${whiskey.id}`}
                 className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors"
               >
+                <MiniBottle fillPercentage={whiskey.current_bottle_fill_percentage ?? 100} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {whiskey.name}
                   </p>
-                  <p className="text-xs text-muted-foreground">{whiskey.type}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {whiskey.type}
+                    {whiskey.distillery ? ` · ${whiskey.distillery}` : ""}
+                  </p>
                 </div>
                 {whiskey.rating && (
                   <StarRating rating={whiskey.rating} size="sm" readonly />

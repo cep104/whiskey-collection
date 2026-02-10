@@ -3,27 +3,26 @@
 import { useState, useMemo } from "react";
 import type { Whiskey } from "@/lib/types";
 import { WhiskeyCard } from "./whiskey-card";
-import {
-  CollectionFilters,
-  type FilterState,
-} from "./collection-filters";
+import { CollectionFilters, type FilterState } from "./collection-filters";
 import { EmptyState } from "./empty-state";
 
 interface CollectionViewProps {
   whiskeys: Whiskey[];
+  initialDistillery?: string;
 }
 
-export function CollectionView({ whiskeys }: CollectionViewProps) {
+export function CollectionView({ whiskeys, initialDistillery }: CollectionViewProps) {
   const [filters, setFilters] = useState<FilterState>({
     search: "",
     type: "all",
+    country: "all",
+    distillery: initialDistillery || "all",
     sort: "date-desc",
   });
 
   const filtered = useMemo(() => {
     let result = [...whiskeys];
 
-    // Search
     if (filters.search) {
       const q = filters.search.toLowerCase();
       result = result.filter(
@@ -31,16 +30,25 @@ export function CollectionView({ whiskeys }: CollectionViewProps) {
           w.name.toLowerCase().includes(q) ||
           w.type.toLowerCase().includes(q) ||
           w.store?.toLowerCase().includes(q) ||
+          w.distillery?.toLowerCase().includes(q) ||
+          w.country?.toLowerCase().includes(q) ||
+          w.region?.toLowerCase().includes(q) ||
           w.tasting_notes?.toLowerCase().includes(q)
       );
     }
 
-    // Type filter
     if (filters.type !== "all") {
       result = result.filter((w) => w.type === filters.type);
     }
 
-    // Sort
+    if (filters.country !== "all") {
+      result = result.filter((w) => w.country === filters.country);
+    }
+
+    if (filters.distillery !== "all") {
+      result = result.filter((w) => w.distillery === filters.distillery);
+    }
+
     const [field, dir] = filters.sort.split("-");
     result.sort((a, b) => {
       let cmp = 0;
@@ -55,16 +63,21 @@ export function CollectionView({ whiskeys }: CollectionViewProps) {
           cmp = (a.rating || 0) - (b.rating || 0);
           break;
         case "date":
-          cmp =
-            new Date(a.created_at).getTime() -
-            new Date(b.created_at).getTime();
+          cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           break;
         case "quantity":
           cmp =
-            (a.current_quantity_ml || a.bottle_size_ml) /
-              a.bottle_size_ml -
-            (b.current_quantity_ml || b.bottle_size_ml) /
-              b.bottle_size_ml;
+            (a.current_bottle_fill_percentage ?? 100) -
+            (b.current_bottle_fill_percentage ?? 100);
+          break;
+        case "distillery":
+          cmp = (a.distillery || "").localeCompare(b.distillery || "");
+          break;
+        case "country":
+          cmp = (a.country || "").localeCompare(b.country || "");
+          break;
+        case "age":
+          cmp = (a.age_statement || 0) - (b.age_statement || 0);
           break;
       }
       return dir === "desc" ? -cmp : cmp;
@@ -84,6 +97,7 @@ export function CollectionView({ whiskeys }: CollectionViewProps) {
         onChange={setFilters}
         totalCount={whiskeys.length}
         filteredCount={filtered.length}
+        whiskeys={whiskeys}
       />
 
       {filtered.length === 0 ? (

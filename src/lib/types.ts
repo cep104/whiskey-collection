@@ -14,11 +14,19 @@ export interface Whiskey {
   user_id: string;
   name: string;
   type: WhiskeyType;
+  distillery: string | null;
+  country: string | null;
+  region: string | null;
+  age_statement: number | null;
   store: string | null;
   purchase_price: number | null;
   purchase_date: string | null;
+  number_of_bottles: number;
+  bottles_opened: number;
+  current_bottle_fill_percentage: number;
   current_quantity_ml: number | null;
   bottle_size_ml: number;
+  abv: number | null;
   tasting_notes: string | null;
   rating: number | null;
   image_url: string | null;
@@ -47,6 +55,13 @@ export interface PricingData {
   cached_at: string;
 }
 
+export interface ImageSearchResult {
+  url: string;
+  thumbnail: string;
+  source: string;
+  alt: string;
+}
+
 export interface CollectionStats {
   total_bottles: number;
   total_value: number;
@@ -55,6 +70,22 @@ export interface CollectionStats {
   recently_added: Whiskey[];
   avg_rating: number;
 }
+
+export const WHISKEY_COUNTRIES = [
+  "USA",
+  "Scotland",
+  "Ireland",
+  "Japan",
+  "Canada",
+  "India",
+  "Taiwan",
+  "Australia",
+  "England",
+  "Wales",
+  "Other",
+] as const;
+
+export type WhiskeyCountry = (typeof WHISKEY_COUNTRIES)[number];
 
 export interface Database {
   public: {

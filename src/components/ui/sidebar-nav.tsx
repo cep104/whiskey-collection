@@ -10,12 +10,14 @@ import {
   BarChart3,
   User,
   LogOut,
+  Building2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 const navItems = [
   { href: "/collection", label: "Collection", icon: Wine },
+  { href: "/distilleries", label: "Distilleries", icon: Building2 },
   { href: "/wishlist", label: "Wish List", icon: Heart },
   { href: "/add", label: "Add Bottle", icon: PlusCircle },
   { href: "/stats", label: "Statistics", icon: BarChart3 },
