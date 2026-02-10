@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 10% 6%;
+    --foreground: 40 20% 92%;
+    --card: 30 10% 9%;
+    --card-foreground: 40 20% 92%;
+    --popover: 30 10% 9%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 38 75% 38%;
+    --primary-foreground: 40 20% 98%;
+    --secondary: 30 10% 14%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 30 10% 16%;
+    --muted-foreground: 30 10% 55%;
+    --accent: 30 15% 16%;
+    --accent-foreground: 40 20% 92%;
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 40 20% 98%;
+    --border: 30 10% 18%;
+    --input: 30 10% 18%;
+    --ring: 38 75% 38%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/[0.05] backdrop-blur-xl border border-white/[0.08] shadow-xl;
+  }
+  .glass-hover {
+    @apply hover:bg-white/[0.08] hover:border-white/[0.12] transition-all duration-300;
+  }
+  .glass-card {
+    @apply bg-gradient-to-br from-white/[0.07] to-white/[0.02] backdrop-blur-xl border border-white/[0.08] shadow-xl rounded-xl;
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-whiskey-gold via-amber-400 to-whiskey-copper bg-clip-text text-transparent;
+  }
+  .glow {
+    box-shadow: 0 0 40px rgba(184, 134, 11, 0.15),
+      0 0 80px rgba(184, 134, 11, 0.05);
+  }
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+  .shimmer::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.04),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(184, 134, 11, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 134, 11, 0.5);
+}
+
+/* Mobile safe area */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+}
+
+/* Star rating animation */
+.star-fill {
+  transition: all 0.2s ease;
+}
+.star-fill:hover {
+  transform: scale(1.2);
+}
