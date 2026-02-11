@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Search, Loader2, Check, X } from "lucide-react";
 import type { ImageSearchResult } from "@/lib/types";
@@ -25,13 +26,20 @@ export function ImagePicker({
   const [images, setImages] = useState<ImageSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(whiskeyName);
+
+  // Keep search query in sync when the bottle name changes (e.g. auto-fill)
+  useEffect(() => {
+    if (whiskeyName) setSearchQuery(whiskeyName);
+  }, [whiskeyName]);
 
   const searchImages = useCallback(async () => {
-    if (!whiskeyName.trim()) return;
+    const query = searchQuery.trim() || whiskeyName.trim();
+    if (!query) return;
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/images/search?name=${encodeURIComponent(whiskeyName)}&type=${encodeURIComponent(whiskeyType)}`
+        `/api/images/search?name=${encodeURIComponent(query)}&type=${encodeURIComponent(whiskeyType)}`
       );
       const data = await res.json();
       setImages(data.images || []);
@@ -41,24 +49,32 @@ export function ImagePicker({
     } finally {
       setLoading(false);
     }
-  }, [whiskeyName, whiskeyType]);
+  }, [searchQuery, whiskeyName, whiskeyType]);
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
+        <Input
+          type="text"
+          placeholder="Search for bottle images..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); searchImages(); } }}
+          className="flex-1 h-9 text-sm"
+        />
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={searchImages}
-          disabled={loading || !whiskeyName.trim()}
+          disabled={loading || (!searchQuery.trim() && !whiskeyName.trim())}
         >
           {loading ? (
             <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
           ) : (
             <Search className="w-4 h-4 mr-1.5" />
           )}
-          Find Bottle Images
+          Search
         </Button>
         {selectedUrl && (
           <Button
@@ -77,7 +93,7 @@ export function ImagePicker({
       {loading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Searching for &ldquo;{whiskeyName}&rdquo;...
+          Searching for &ldquo;{searchQuery.trim() || whiskeyName}&rdquo;...
         </div>
       )}
 

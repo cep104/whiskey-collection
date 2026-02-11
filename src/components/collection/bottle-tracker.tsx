@@ -31,10 +31,30 @@ const PRESETS = [
 const BOTTLE_PATH =
   "M44,8 C44,4 46,2 50,2 C54,2 56,4 56,8 L56,30 C60,36 70,46 76,56 L76,174 C76,184 64,192 50,192 C36,192 24,184 24,174 L24,56 C30,46 40,36 44,30 Z";
 
-// Fill range: liquid fills from bodyTop (inside neck) to bodyBottom (near base)
-const BODY_TOP = 10;
-const BODY_BOTTOM = 188;
-const BODY_HEIGHT = BODY_BOTTOM - BODY_TOP;
+// Body-width clip: extends at full body width from the very top of the SVG
+// down through the curved base. Gives a flat-topped liquid with no shoulder taper.
+const BODY_FILL_PATH =
+  "M24,0 L76,0 L76,174 C76,184 64,192 50,192 C36,192 24,184 24,174 Z";
+
+// Fill geometry — uses the full visual range so marks are spread across the bottle
+const FILL_TOP = 10;       // top of liquid area (inside neck)
+const FILL_BOTTOM = 188;   // near base
+const FILL_HEIGHT = FILL_BOTTOM - FILL_TOP; // 178
+
+/** Convert fill percentage to SVG Y position for the liquid surface.
+ *  0-100% maps linearly across the full bottle height. */
+function pctToFillY(pct: number): number {
+  if (pct <= 0) return FILL_BOTTOM;
+  if (pct >= 100) return FILL_TOP;
+  return FILL_BOTTOM - (pct / 100) * FILL_HEIGHT;
+}
+
+/** Convert SVG Y position back to fill percentage (for drag interaction) */
+function fillYToPct(y: number): number {
+  if (y >= FILL_BOTTOM) return 0;
+  if (y <= FILL_TOP) return 100;
+  return ((FILL_BOTTOM - y) / FILL_HEIGHT) * 100;
+}
 
 function getFillGradientStops(pct: number) {
   if (pct > 75) return { top: "#fbbf24", bottom: "#b45309" };
@@ -70,7 +90,7 @@ export function BottleTracker({
   const warning = getWarningLabel(pct);
   const gradientStops = getFillGradientStops(pct);
 
-  const fillY = BODY_BOTTOM - (pct / 100) * BODY_HEIGHT;
+  const fillY = pctToFillY(pct);
 
   const setFill = useCallback(
     (newPct: number) => {
@@ -88,7 +108,7 @@ export function BottleTracker({
       const svgHeight = rect.height;
       const scale = 200 / svgHeight;
       const relY = (clientY - rect.top) * scale;
-      const fillPct = ((BODY_BOTTOM - relY) / BODY_HEIGHT) * 100;
+      const fillPct = fillYToPct(relY);
       setFill(fillPct);
     },
     [setFill]
@@ -176,6 +196,9 @@ export function BottleTracker({
               <clipPath id="bottle-clip">
                 <path d={BOTTLE_PATH} />
               </clipPath>
+              <clipPath id="body-clip">
+                <path d={BODY_FILL_PATH} />
+              </clipPath>
             </defs>
 
             {/* Bottle shape */}
@@ -186,13 +209,13 @@ export function BottleTracker({
               strokeWidth="1.5"
             />
 
-            {/* Liquid fill */}
+            {/* Liquid fill — use flat body clip below 95%, full bottle clip for neck */}
             <motion.rect
               x="0"
               width="100"
               height={200 - fillY}
               fill="url(#liquid-gradient)"
-              clipPath="url(#bottle-clip)"
+              clipPath={pct >= 96 ? "url(#bottle-clip)" : "url(#body-clip)"}
               initial={false}
               animate={{ y: fillY }}
               transition={{ type: "spring", stiffness: 200, damping: 25 }}
@@ -218,7 +241,7 @@ export function BottleTracker({
 
             {/* Graduation marks */}
             {[25, 50, 75].map((mark) => {
-              const markY = BODY_BOTTOM - (mark / 100) * BODY_HEIGHT;
+              const markY = pctToFillY(mark);
               return (
                 <g key={mark}>
                   <line
@@ -388,7 +411,7 @@ export function BottleTracker({
 /** Small inline bottle for cards and lists */
 export function MiniBottle({ fillPercentage }: { fillPercentage: number }) {
   const pct = Math.max(0, Math.min(100, fillPercentage));
-  const fillY = BODY_BOTTOM - (pct / 100) * BODY_HEIGHT;
+  const fillY = pctToFillY(pct);
   const gradientStops = getFillGradientStops(pct);
   const uid = `mini-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -401,6 +424,9 @@ export function MiniBottle({ fillPercentage }: { fillPercentage: number }) {
         </linearGradient>
         <clipPath id={`c-${uid}`}>
           <path d={BOTTLE_PATH} />
+        </clipPath>
+        <clipPath id={`cb-${uid}`}>
+          <path d={BODY_FILL_PATH} />
         </clipPath>
       </defs>
       <path
@@ -415,7 +441,7 @@ export function MiniBottle({ fillPercentage }: { fillPercentage: number }) {
         width="100"
         height={200 - fillY}
         fill={`url(#f-${uid})`}
-        clipPath={`url(#c-${uid})`}
+        clipPath={pct >= 96 ? `url(#c-${uid})` : `url(#cb-${uid})`}
       />
     </svg>
   );

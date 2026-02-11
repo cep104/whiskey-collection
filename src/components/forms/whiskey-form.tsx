@@ -99,6 +99,20 @@ export function WhiskeyForm({ whiskey }: WhiskeyFormProps) {
     if (entry.bottle_size_ml) setValue("bottle_size_ml", entry.bottle_size_ml);
     if (entry.description) setValue("tasting_notes", entry.description);
     setAutoFilledName(entry.name);
+
+    // Auto-fetch a bottle image
+    fetch(
+      `/api/images/search?name=${encodeURIComponent(entry.name)}&type=${encodeURIComponent(entry.type)}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        const images = data.images;
+        if (images && images.length > 0) {
+          setSelectedApiImage(images[0].url);
+          setImagePreview(images[0].url);
+        }
+      })
+      .catch(() => {});
   }
 
   function handleClearAutoFill() {

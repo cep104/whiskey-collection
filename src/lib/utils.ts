@@ -33,3 +33,7 @@ export function getQuantityColor(percentage: number): string {
   if (percentage > 33) return "text-yellow-400";
   return "text-red-400";
 }
+
+/** Default placeholder image for bottles without a photo */
+export const PLACEHOLDER_IMAGE =
+  "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=800&h=1000&fit=crop";

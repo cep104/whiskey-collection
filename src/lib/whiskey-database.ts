@@ -28,6 +28,9 @@ export const WHISKEY_DATABASE: WhiskeyEntry[] = [
   { name: "Knob Creek 9 Year", distillery: "Jim Beam Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: 9, abv: 50, bottle_size_ml: 750, description: "Rich, full-bodied with sweet maple, toasted nut, and oak." },
   { name: "Eagle Rare 10 Year", distillery: "Buffalo Trace Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: 10, abv: 45, bottle_size_ml: 750, description: "Bold, dry, and delicate with notes of toffee, hints of orange peel." },
   { name: "Blanton's Single Barrel", distillery: "Buffalo Trace Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: null, abv: 46.5, bottle_size_ml: 750, description: "Citrus, vanilla, and caramel with a smooth, long finish." },
+  { name: "Blanton's Gold", distillery: "Buffalo Trace Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: null, abv: 51.5, bottle_size_ml: 750, description: "Rich caramel, toffee, and dried fruit with a long, warm finish." },
+  { name: "Blanton's Straight From The Barrel", distillery: "Buffalo Trace Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: null, abv: 65, bottle_size_ml: 750, description: "Uncut, unfiltered. Intense caramel, dark chocolate, and oak spice." },
+  { name: "Blanton's Special Reserve", distillery: "Buffalo Trace Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: null, abv: 40, bottle_size_ml: 750, description: "Lighter and softer with vanilla, honey, and gentle spice." },
   { name: "Pappy Van Winkle 15 Year", distillery: "Buffalo Trace Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: 15, abv: 53.5, bottle_size_ml: 750, description: "Rich caramel, toffee, dark fruit, and cherry. Legendary bourbon." },
   { name: "Booker's Bourbon", distillery: "Jim Beam Distillery", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: null, abv: 62.95, bottle_size_ml: 750, description: "Uncut, unfiltered. Vanilla, toasted nuts, smoky char." },
   { name: "Bulleit Bourbon", distillery: "Bulleit Distilling Co.", type: "Bourbon", country: "USA", region: "Kentucky", age_statement: null, abv: 45, bottle_size_ml: 750, description: "Spicy rye character with maple, oak, and nutmeg." },
@@ -60,6 +63,8 @@ export const WHISKEY_DATABASE: WhiskeyEntry[] = [
   { name: "Rittenhouse Rye", distillery: "Heaven Hill Distillery", type: "Rye", country: "USA", region: "Kentucky", age_statement: null, abv: 50, bottle_size_ml: 750, description: "Spicy, with caramel and dark fruit. Bold and intense." },
   { name: "Sazerac Rye", distillery: "Buffalo Trace Distillery", type: "Rye", country: "USA", region: "Kentucky", age_statement: null, abv: 45, bottle_size_ml: 750, description: "Gentle spice with soft caramel and candy sweetness." },
   { name: "High West Double Rye", distillery: "High West Distillery", type: "Rye", country: "USA", region: "Utah", age_statement: null, abv: 46, bottle_size_ml: 750, description: "Mint, clove, cinnamon, with honey and vanilla." },
+  { name: "High West Campfire", distillery: "High West Distillery", type: "Blended", country: "USA", region: "Utah", age_statement: null, abv: 46, bottle_size_ml: 750, description: "Unique blend of bourbon, rye, and peated scotch. Smoky, sweet, and spicy." },
+  { name: "High West Bourye", distillery: "High West Distillery", type: "Blended", country: "USA", region: "Utah", age_statement: null, abv: 46, bottle_size_ml: 750, description: "Blend of straight bourbon and rye. Rich butterscotch, dried fruit, and spice." },
   { name: "Templeton Rye 4 Year", distillery: "Templeton Rye Distillery", type: "Rye", country: "USA", region: "Iowa", age_statement: 4, abv: 40, bottle_size_ml: 750, description: "Smooth with zesty spice, caramel, and toffee." },
 
   // === IRISH ===
@@ -94,30 +99,35 @@ export const WHISKEY_DATABASE: WhiskeyEntry[] = [
   { name: "Amrut Fusion", distillery: "Amrut Distilleries", type: "Single Malt", country: "India", region: "Bangalore", age_statement: null, abv: 50, bottle_size_ml: 700, description: "Barley, chocolate, cinnamon, and smoke. Bold Indian single malt." },
 ];
 
+/** Strip punctuation for matching (e.g. "Blanton's" -> "blantons") */
+function normalize(str: string): string {
+  return str.toLowerCase().replace(/[''.,\-]/g, "");
+}
+
 /** Fuzzy search: match query against name, distillery, type */
 export function searchWhiskeyDatabase(query: string): WhiskeyEntry[] {
-  const q = query.toLowerCase().trim();
+  const q = normalize(query.trim());
   if (q.length < 2) return [];
 
   const terms = q.split(/\s+/);
 
   // Score each entry
   const scored = WHISKEY_DATABASE.map((entry) => {
-    const nameL = entry.name.toLowerCase();
-    const distilleryL = entry.distillery.toLowerCase();
-    const typeL = entry.type.toLowerCase();
+    const nameN = normalize(entry.name);
+    const distilleryN = normalize(entry.distillery);
+    const typeN = normalize(entry.type);
     let score = 0;
 
     // Exact name start
-    if (nameL.startsWith(q)) score += 100;
+    if (nameN.startsWith(q)) score += 100;
     // Name contains full query
-    else if (nameL.includes(q)) score += 60;
+    else if (nameN.includes(q)) score += 60;
 
     // Each term matches
     for (const term of terms) {
-      if (nameL.includes(term)) score += 20;
-      if (distilleryL.includes(term)) score += 10;
-      if (typeL.includes(term)) score += 5;
+      if (nameN.includes(term)) score += 20;
+      if (distilleryN.includes(term)) score += 10;
+      if (typeN.includes(term)) score += 5;
     }
 
     return { entry, score };

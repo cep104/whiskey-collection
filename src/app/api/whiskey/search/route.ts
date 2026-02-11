@@ -14,21 +14,36 @@ import {
 const searchCache = new Map<string, { data: WhiskeyEntry[]; ts: number }>();
 const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 
+// Cache the full distillery list so we only fetch once
+let distilleryCache: { data: Record<string, unknown>[]; ts: number } | null =
+  null;
+const DISTILLERY_CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+
 async function searchExternalAPI(query: string): Promise<WhiskeyEntry[]> {
   const baseUrl = process.env.WHISKY_HUNTER_API_URL;
   if (!baseUrl) return [];
 
   try {
-    const res = await fetch(
-      `${baseUrl}/distilleries_info/?format=json&limit=5&search=${encodeURIComponent(query)}`,
-      { signal: AbortSignal.timeout(3000) }
-    );
-    if (!res.ok) return [];
+    // Fetch full list once (API doesn't support server-side search)
+    if (!distilleryCache || Date.now() - distilleryCache.ts > DISTILLERY_CACHE_TTL) {
+      const res = await fetch(`${baseUrl}/distilleries_info/?format=json`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      if (!Array.isArray(data)) return [];
+      distilleryCache = { data, ts: Date.now() };
+    }
 
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
+    // Filter client-side by query
+    const q = query.toLowerCase();
+    const matches = distilleryCache.data.filter((item) => {
+      const name = String(item.name || "").toLowerCase();
+      const slug = String(item.slug || "").toLowerCase();
+      return name.includes(q) || slug.includes(q);
+    });
 
-    return data.map((item: Record<string, unknown>) => ({
+    return matches.slice(0, 5).map((item) => ({
       name: String(item.name || ""),
       distillery: String(item.name || ""),
       type: "Scotch" as const,
@@ -37,7 +52,7 @@ async function searchExternalAPI(query: string): Promise<WhiskeyEntry[]> {
       age_statement: null,
       abv: null,
       bottle_size_ml: 700,
-      description: String(item.description || ""),
+      description: "",
     }));
   } catch {
     return [];

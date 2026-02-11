@@ -38,6 +38,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Rich vanilla and caramel with hints of toffee and dark fruit. Smooth finish with a touch of spice.",
     rating: 4,
+
   },
   {
     name: "Lagavulin 16 Year",
@@ -58,6 +59,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Intensely smoky and peaty with iodine and seaweed. Rich dried fruit and sherry sweetness underneath.",
     rating: 5,
+
   },
   {
     name: "Hibiki Harmony",
@@ -78,6 +80,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Delicate honey and candied orange peel. Rose, lychee, and subtle Mizunara oak spice. Silky texture.",
     rating: 5,
+
   },
   {
     name: "Redbreast 12 Year",
@@ -98,6 +101,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Pot still character with sherry notes. Creamy mouthfeel, toasted oak, dried fruits, and nutmeg.",
     rating: 4,
+
   },
   {
     name: "WhistlePig 10 Year",
@@ -118,6 +122,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Bold rye spice with butterscotch and caramel. Allspice, clove, and mint. Long warm finish.",
     rating: 4,
+
   },
   {
     name: "Macallan 18 Year Sherry Oak",
@@ -138,6 +143,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Rich dried fruits, ginger, and wood smoke. Complex sherry influence with chocolate and orange zest.",
     rating: 5,
+
   },
   {
     name: "Johnnie Walker Blue Label",
@@ -158,6 +164,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Incredibly smooth with layers of smoky malt, honey, and rose petal. Lingering finish of dark chocolate.",
     rating: 4,
+
   },
   {
     name: "Maker's Mark Cask Strength",
@@ -178,6 +185,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Full-bodied caramel and vanilla with baking spices. Red winter wheat sweetness. Bold but not harsh.",
     rating: 4,
+
   },
   {
     name: "Eagle Rare 10 Year",
@@ -198,6 +206,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Bold, dry, and delicate with notes of toffee, hints of orange peel, and toasted oak. Long smooth finish.",
     rating: 4,
+
   },
   {
     name: "Blanton's Single Barrel",
@@ -218,6 +227,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Citrus, vanilla, and caramel with a smooth long finish. Collectible horse-and-jockey stopper.",
     rating: 5,
+
   },
   {
     name: "Lagavulin 8 Year",
@@ -238,6 +248,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Youthful peat intensity with maritime smoke, lemon, and sweet malt. Surprisingly approachable.",
     rating: 4,
+
   },
   {
     name: "Maker's Mark",
@@ -258,6 +269,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Soft wheat-forward bourbon with caramel, vanilla, and fruity notes. A reliable classic.",
     rating: 3,
+
   },
   {
     name: "Nikka From The Barrel",
@@ -278,6 +290,7 @@ export const sampleWhiskeys: {
     tasting_notes:
       "Rich and full-bodied with malty sweetness, dried fruit, and warming spice. Incredibly smooth for its proof.",
     rating: 5,
+
   },
 ];
 
