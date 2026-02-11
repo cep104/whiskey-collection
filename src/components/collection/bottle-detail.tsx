@@ -19,6 +19,7 @@ import {
   Droplets, Loader2, Building2, Globe, Clock, Package,
 } from "lucide-react";
 import { WhiskeyForm } from "@/components/forms/whiskey-form";
+import { AnimeRecommendations } from "@/components/collection/anime-recommendations";
 import { motion } from "framer-motion";
 
 interface BottleDetailProps {
@@ -254,6 +255,9 @@ export function BottleDetail({ whiskey }: BottleDetailProps) {
               <p className="text-sm leading-relaxed glass p-4 rounded-xl italic">&ldquo;{whiskey.tasting_notes}&rdquo;</p>
             </div>
           )}
+
+          {/* Anime Pairing Easter Egg */}
+          <AnimeRecommendations whiskey={whiskey} />
 
           <p className="text-xs text-muted-foreground">
             Added {formatDate(whiskey.created_at)}
