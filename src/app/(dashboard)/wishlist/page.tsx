@@ -1,5 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { WishlistView } from "@/components/wishlist/wishlist-view";
+import { PageTransition } from "@/components/ui/page-transition";
 
 export default async function WishlistPage() {
   const supabase = createServerClient();
@@ -20,8 +21,10 @@ export default async function WishlistPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
-      <WishlistView items={items} />
-    </div>
+    <PageTransition>
+      <div className="p-4 md:p-8 max-w-4xl mx-auto">
+        <WishlistView items={items} />
+      </div>
+    </PageTransition>
   );
 }

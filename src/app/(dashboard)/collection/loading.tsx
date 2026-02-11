@@ -1,5 +1,5 @@
 import { CollectionSkeleton } from "@/components/ui/skeleton";
 
-export default function DashboardLoading() {
+export default function CollectionLoading() {
   return <CollectionSkeleton />;
 }

@@ -1,5 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { StatsView } from "@/components/collection/stats-view";
+import { PageTransition } from "@/components/ui/page-transition";
 import type { Whiskey } from "@/lib/types";
 
 export default async function StatsPage() {
@@ -20,16 +21,18 @@ export default async function StatsPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-serif font-bold">
-          Statistics
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Your collection at a glance
-        </p>
+    <PageTransition>
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-serif font-bold">
+            Statistics
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Your collection at a glance
+          </p>
+        </div>
+        <StatsView whiskeys={whiskeys} />
       </div>
-      <StatsView whiskeys={whiskeys} />
-    </div>
+    </PageTransition>
   );
 }
