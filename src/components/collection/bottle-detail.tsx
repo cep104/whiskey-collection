@@ -190,10 +190,10 @@ export function BottleDetail({ whiskey }: BottleDetailProps) {
               <p className="font-semibold text-sm">{whiskey.bottle_size_ml}ml</p>
             </div>
             {whiskey.distillery && (
-              <div className="glass p-3 rounded-xl">
+              <Link href={`/distilleries/${encodeURIComponent(whiskey.distillery.toLowerCase().replace(/\s+/g, "-"))}`} className="glass p-3 rounded-xl hover:border-whiskey-gold/20 transition-colors">
                 <div className="flex items-center gap-2 mb-1"><Building2 className="w-4 h-4 text-whiskey-gold" /><span className="text-xs text-muted-foreground">Distillery</span></div>
-                <p className="font-semibold text-sm">{whiskey.distillery}</p>
-              </div>
+                <p className="font-semibold text-sm text-whiskey-gold">{whiskey.distillery}</p>
+              </Link>
             )}
             {whiskey.country && (
               <div className="glass p-3 rounded-xl">
@@ -243,7 +243,7 @@ export function BottleDetail({ whiskey }: BottleDetailProps) {
           </div>
 
           {whiskey.distillery && (
-            <Link href={`/distilleries`} className="inline-flex items-center gap-2 text-sm text-whiskey-gold hover:text-amber-400 transition-colors">
+            <Link href={`/distilleries/${encodeURIComponent(whiskey.distillery.toLowerCase().replace(/\s+/g, "-"))}`} className="inline-flex items-center gap-2 text-sm text-whiskey-gold hover:text-amber-400 transition-colors min-h-[44px]">
               <Building2 className="w-4 h-4" />View all from {whiskey.distillery}
             </Link>
           )}
